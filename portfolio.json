@@ -1,0 +1,28 @@
+{
+  "positions": [
+    {
+      "symbol": "BTC",
+      "quantity": 0.5,
+      "entry_price": 45000.0,
+      "current_price": 46000.0,
+      "liquidation_price": 40500.0,
+      "leverage": 10.0,
+      "unrealized_pnl": 5000.0,
+      "entry_time": "2025-10-28T01:48:23.647715"
+    },
+    {
+      "symbol": "ETH",
+      "quantity": -10.0,
+      "entry_price": 3000.0,
+      "current_price": 2920.0,
+      "liquidation_price": 2400.0,
+      "leverage": 5.0,
+      "unrealized_pnl": 4000.0,
+      "entry_time": "2025-10-28T01:48:23.647741"
+    }
+  ],
+  "timestamp": "2025-10-28T01:48:23.647826",
+  "initial_cash": 10000.0,
+  "available_cash": 1750.0,
+  "total_asset": 19000.0
+}

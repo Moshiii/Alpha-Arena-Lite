@@ -1,0 +1,38 @@
+{
+  "positions": [
+    {
+      "symbol": "BTC",
+      "quantity": 0.0,
+      "entry_price": 0.0,
+      "current_price": 0.0,
+      "liquidation_price": null,
+      "leverage": 1.0,
+      "unrealized_pnl": 0.0,
+      "entry_time": "2025-01-01T00:00:00.000000"
+    },
+    {
+      "symbol": "ETH",
+      "quantity": 0.0,
+      "entry_price": 0.0,
+      "current_price": 0.0,
+      "liquidation_price": null,
+      "leverage": 1.0,
+      "unrealized_pnl": 0.0,
+      "entry_time": "2025-01-01T00:00:00.000000"
+    },
+    {
+      "symbol": "SOL",
+      "quantity": 0.0,
+      "entry_price": 0.0,
+      "current_price": 0.0,
+      "liquidation_price": null,
+      "leverage": 1.0,
+      "unrealized_pnl": 0.0,
+      "entry_time": "2025-01-01T00:00:00.000000"
+    }
+  ],
+  "timestamp": "2025-01-01T00:00:00.000000",
+  "initial_cash": 1000000.0,
+  "available_cash": 1000000.0,
+  "total_asset": 1000000.0
+}
