@@ -138,56 +138,75 @@ class SimplePortfolio:
         
         # Update total asset
         self._update_total_asset()
-    
+    def decisions_display(self, all_decisions: Dict[str, Any]) -> None:
+        print("\n" + "="*80)
+        for symbol, decision_data in all_decisions.items():
+            args = decision_data["trade_signal_args"]
+            print(f"\n{symbol} Trading Decision:")
+            print(f"  Signal: {args['signal']}")
+            print(f"  Quantity: {args['quantity']}")
+            print(f"  Entry Price: ${args.get('entry_price', 0):.2f}")
+            print(f"  Profit Target: ${args['profit_target']}")
+            print(f"  Stop Loss: ${args['stop_loss']}")
+            print(f"  Leverage: {args['leverage']}x")
+            print(f"  Confidence: {args['confidence']}")
+            print(f"  Risk: ${args['risk_usd']}")
+            print(f"  Invalidation: {args['invalidation_condition']}")
+        
+        
     def add_order(self, symbol: str, quantity: float, price: float, leverage: float = 1.0, 
                   profit_target: Optional[float] = None, stop_loss: Optional[float] = None,
-                  confidence: float = 0.5) -> bool:
-        """Add a new order - creates a position and calculates additional attributes
-        
-        If existing position has opposite sign, closes the position first.
-        
-        Returns:
-            True if order was added successfully
-            False if position already exists for this symbol with same direction
+                  confidence: float = 0.5, signal: Optional[str] = None) -> bool:
+        """Add or act on an order based on signal rules.
+
+        Signal handling rules:
+        - hold: do nothing
+        - existing position + buy/sell: reject (do nothing)
+        - existing position + close: close the position and update totals
+        - no position + buy/sell: open new position and compute leverage/liquidation/PnL
+
+        If no signal is provided, falls back to prior behavior: close opposite-direction
+        positions then add the new one, and reject same-direction duplicates.
+
+        Returns True if a position was opened/closed; False if nothing was done.
         """
-        # Check if position already exists for this symbol
-        if symbol in self.positions and self.positions[symbol].quantity != 0:
-            existing_quantity = self.positions[symbol].quantity
-            
-            # Check if we're trying to close the position (opposite signs)
-            if (existing_quantity > 0 and quantity < 0) or (existing_quantity < 0 and quantity > 0):
-                print(f"Closing existing {symbol} position (Qty: {existing_quantity:.4f})")
-                # Close the existing position
-                self.remove_position(symbol)
-                # Continue to add the new position below
-            elif existing_quantity == 0:
-                # Empty position exists, just update it
-                pass
-            else:
-                print(f"Position already exists for {symbol} with same direction, cannot add order")
+        has_position = symbol in self.positions and self.positions[symbol].quantity != 0
+
+        if signal is not None:
+            normalized_signal = signal.lower()
+
+            # Rule: hold -> do nothing
+            if normalized_signal == 'hold':
                 return False
-        
-        print(f"Adding position for {symbol} (Qty: {quantity:.4f})")
-        
-        # Calculate liquidation price
-        liquidation_price = price * (1 - 1/leverage) if leverage > 1 else None
-        
-        # Create position with all calculated attributes
-        position = Position(
-            symbol=symbol,
-            quantity=quantity,
-            entry_price=price,
-            current_price=price,
-            liquidation_price=liquidation_price,
-            leverage=leverage,
-            profit_target=profit_target,
-            stop_loss=stop_loss,
-            confidence=confidence
-        )
-        
-        # Add position to portfolio
-        self.add_position(position)
-        return True
+
+            # Rule: existing position + buy/sell -> reject
+            if has_position and normalized_signal in ('buy', 'sell'):
+                return False
+
+            # Rule: existing position + close -> close and update totals
+            if has_position and normalized_signal == 'close':
+                self.remove_position(symbol)
+                return True
+
+            # Rule: no position + buy/sell -> open new position
+            if (not has_position) and normalized_signal in ('buy', 'sell'):
+                liquidation_price = price * (1 - 1/leverage) if leverage > 1 else None
+                position = Position(
+                    symbol=symbol,
+                    quantity=quantity,
+                    entry_price=price,
+                    current_price=price,
+                    liquidation_price=liquidation_price,
+                    leverage=leverage,
+                    profit_target=profit_target,
+                    stop_loss=stop_loss,
+                    confidence=confidence
+                )
+                self.add_position(position)
+                return True
+
+            # Any other/unrecognized signal -> do nothing
+            return False
     
     def remove_position(self, symbol: str) -> None:
         """Remove a position"""

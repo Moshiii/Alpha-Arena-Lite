@@ -135,6 +135,8 @@ def symbol_data_provider_json(symbol: str, frequency: str, count: int) -> Dict[s
     
     klines = client.get_kline_data(symbol, period=timeframe, count=count)
     print(f"Got {len(klines)} klines for {symbol} {frequency} {count}")
+    if not klines:
+        return {}
     
     df = pd.DataFrame(klines)
     df['datetime'] = pd.to_datetime(df['datetime_str'])
@@ -178,64 +180,6 @@ def symbol_data_provider_json(symbol: str, frequency: str, count: int) -> Dict[s
     }
     
     return result
-
-def to_string(json_result: Dict[str, Any]) -> str:
-    """Convert json result to formatted string"""
-    symbol_upper = json_result.get('symbol', '').upper()
-    frequency = json_result.get('frequency', '3m')
-    
-    # Get intraday data from json_result
-    intraday = json_result
-    longer_term = json_result.get('longer_term_data', {})
-    
-    # Determine interval description
-    freq_map = {
-        '1m': '1-minute',
-        '3m': '3-minute',
-        '5m': '5-minute',
-        '15m': '15-minute',
-        '30m': '30-minute',
-        '1h': 'hourly',
-        '4h': '4-hour',
-        '1d': 'daily'
-    }
-    interval_desc = freq_map.get(frequency, frequency)
-    
-    output = f"ALL {symbol_upper} DATA\n"
-    output += f"current_price = {intraday['current_price']:.3f}, current_ema20 = {intraday['current_close_20_ema']:.3f}, "
-    output += f"current_macd = {intraday['current_macd']:.3f}, current_rsi (7 period) = {intraday['current_rsi_7']:.3f}\n"
-    output += f"In addition, here is the latest {symbol_upper} open interest and funding rate for perps:\n"
-    output += f"Open Interest: Latest: {intraday['open_interest_latest']:.2f}  Average: {intraday['open_interest_average']:.2f}\n"
-    output += f"Funding Rate: {intraday['funding_rate']:.2e}\n"
-    output += f"Intraday series ({interval_desc} intervals, oldest → latest):\n"
-    
-    # Format arrays with proper precision
-    mid_prices_str = ', '.join([f"{x:.2f}" for x in intraday['mid_prices']])
-    ema_20_str = ', '.join([f"{x:.3f}" for x in intraday['ema_20_array']])
-    macd_str = ', '.join([f"{x:.3f}" for x in intraday['macd_array']])
-    rsi_7_str = ', '.join([f"{x:.3f}" for x in intraday['rsi_7_array']])
-    rsi_14_str = ', '.join([f"{x:.3f}" for x in intraday['rsi_14_array']])
-    
-    output += f"{symbol_upper} mid prices: [{mid_prices_str}]\n"
-    output += f"EMA indicators (20‑period): [{ema_20_str}]\n"
-    output += f"MACD indicators: [{macd_str}]\n"
-    output += f"RSI indicators (7‑Period): [{rsi_7_str}]\n"
-    output += f"RSI indicators (14‑Period): [{rsi_14_str}]\n"
-    
-    # Longer-term context
-    if longer_term:
-        output += f"Longer‑term context (4‑hour timeframe):\n"
-        output += f"20‑Period EMA: {longer_term['current_close_20_ema']:.3f} vs. 50‑Period EMA: {longer_term['ema_50_array'][-1]:.3f}\n"
-        output += f"3‑Period ATR: {longer_term['atr_3_array'][-1]:.3f} vs. 14‑Period ATR: {longer_term['atr_14_array'][-1]:.3f}\n"
-        output += f"Current Volume: {longer_term['current_volume']:.3f} vs. Average Volume: {longer_term['average_volume']:.3f}\n"
-        
-        longer_macd_str = ', '.join([f"{x:.3f}" for x in longer_term['macd_array']])
-        longer_rsi_14_str = ', '.join([f"{x:.3f}" for x in longer_term['rsi_14_array']])
-        
-        output += f"MACD indicators: [{longer_macd_str}]\n"
-        output += f"RSI indicators (14‑Period): [{longer_rsi_14_str}]\n"
-    
-    return output
 
 # Global client instance
 hyperliquid_client = HyperliquidClient()

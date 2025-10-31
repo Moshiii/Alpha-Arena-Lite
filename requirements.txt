@@ -1,5 +1,15 @@
+# 市场数据和交易所接口
 ccxt>=4.0.0
+
+# 数据处理
 pandas>=2.0.0
+
+# 技术指标计算
 stockstats>=0.6.0
-openai>=1.0.0
+
+# AI Agent 框架
+openai-agents
+
+# 其他可能需要的依赖
+python-dotenv>=1.0.0
 
