@@ -2,7 +2,7 @@
 Simple Portfolio Tracker - One position per symbol
 """
 import json
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 from datetime import datetime
 
 
@@ -154,58 +154,168 @@ class SimplePortfolio:
             print(f"  Invalidation: {args['invalidation_condition']}")
         
         
-    def add_order(self, symbol: str, quantity: float, price: float, leverage: float = 1.0, 
-                  profit_target: Optional[float] = None, stop_loss: Optional[float] = None,
-                  confidence: float = 0.5, signal: Optional[str] = None) -> bool:
-        """Add or act on an order based on signal rules.
+    def _validate_order_params(self, symbol: str, entry_price: float, leverage: float, quantity: float) -> Tuple[bool, str]:
+        """Validate order parameters before execution"""
+        if entry_price <= 0:
+            return False, f"Invalid entry price: {entry_price} (must be > 0)"
+        
+        if leverage <= 0:
+            return False, f"Invalid leverage: {leverage} (must be > 0)"
+        
+        if quantity == 0.0:
+            return False, "Quantity is zero"
+        
+        return True, ""
 
-        Signal handling rules:
-        - hold: do nothing
-        - existing position + buy/sell: reject (do nothing)
-        - existing position + close: close the position and update totals
-        - no position + buy/sell: open new position and compute leverage/liquidation/PnL
-
-        If no signal is provided, falls back to prior behavior: close opposite-direction
-        positions then add the new one, and reject same-direction duplicates.
-
-        Returns True if a position was opened/closed; False if nothing was done.
+    def execute_decision(self, symbol: Optional[str] = None, quantity: Optional[float] = None, 
+                         price: Optional[float] = None, leverage: float = 1.0,
+                         profit_target: Optional[float] = None, stop_loss: Optional[float] = None,
+                         confidence: float = 0.5, signal: Optional[str] = None,
+                         decision_data: Optional[Dict[str, Any]] = None, **kwargs) -> bool:
+        """Execute a trading decision with validation and error handling.
+        
+        Can be called in two ways:
+        1. Old add_order style: execute_decision(symbol="BTC", quantity=1.0, price=50000, ...)
+        2. New dict style: execute_decision(decision_data={"trade_signal_args": {...}})
+        
+        Args:
+            symbol: Symbol for the trade (or from decision_data)
+            quantity: Quantity for the trade (or from decision_data)
+            price: Entry price (or from decision_data)
+            leverage: Leverage multiplier (default: 1.0)
+            profit_target: Profit target price (optional)
+            stop_loss: Stop loss price (optional)
+            confidence: Confidence level 0-1 (default: 0.5)
+            signal: Trading signal - 'buy', 'sell', 'hold', 'close' (or from decision_data)
+            decision_data: Dictionary containing 'trade_signal_args' with order parameters
+        
+        Returns:
+            True if order was executed successfully, False otherwise
         """
-        has_position = symbol in self.positions and self.positions[symbol].quantity != 0
+        try:
+            # If decision_data is provided, extract parameters from it
+            if decision_data is not None:
+                # Extract args from decision_data
+                if 'trade_signal_args' in decision_data:
+                    args = decision_data.get("trade_signal_args", {})
+                else:
+                    # If decision_data is already the args dict
+                    args = decision_data
+                
+                signal = args.get('signal', signal or 'hold')
+                quantity = quantity if quantity is not None else args.get('quantity', 0.0)
+                price = price if price is not None else args.get('entry_price', 0)
+                leverage = args.get('leverage', leverage)
+                profit_target = args.get('profit_target', profit_target)
+                stop_loss = args.get('stop_loss', stop_loss)
+                confidence = args.get('confidence', confidence)
+                
+                # Get symbol from args if not provided
+                if symbol is None:
+                    symbol = args.get('coin') or args.get('symbol')
+            else:
+                # Using positional/keyword arguments
+                signal = signal or 'hold'
+                if quantity is None or price is None:
+                    print("❌ Quantity and price must be provided")
+                    return False
+            
+            if symbol is None:
+                print("❌ No symbol provided")
+                return False
+            
+            # Convert to float for safety
+            quantity = float(quantity) if quantity is not None else 0.0
+            entry_price = float(price) if price is not None else 0.0
+            leverage = float(leverage) if leverage is not None else 1.0
 
-        if signal is not None:
-            normalized_signal = signal.lower()
+            
+            # Normalize signal
+            normalized_signal = signal.lower() if signal else 'hold'
+            
+            # Handle explicit close signal
+            if normalized_signal == 'close':
+                if symbol in self.positions:
+                    self.remove_position(symbol)
+                    print(f"🛑 {symbol}: Position closed by signal.")
+                    return True
+                else:
+                    print(f"⚠️  {symbol}: No position to close.")
+                    return False
 
-            # Rule: hold -> do nothing
-            if normalized_signal == 'hold':
+            # If signal is hold, skip execution
+            if normalized_signal == 'hold' or quantity == 0.0:
+                print(f"⏸️  {symbol}: No new position (signal=hold or quantity=0).")
                 return False
 
-            # Rule: existing position + buy/sell -> reject
-            if has_position and normalized_signal in ('buy', 'sell'):
+            # Validate order parameters
+            is_valid, error_msg = self._validate_order_params(symbol, entry_price, leverage, quantity)
+            if not is_valid:
+                print(f"❌ {symbol}: {error_msg}")
                 return False
 
-            # Rule: existing position + close -> close and update totals
-            if has_position and normalized_signal == 'close':
-                self.remove_position(symbol)
-                return True
+            # Check if we have sufficient cash
+            try:
+                collateral_needed = abs(quantity) * entry_price / leverage
+            except ZeroDivisionError:
+                print(f"❌ {symbol}: Invalid leverage (divide by zero)")
+                return False
 
-            # Rule: no position + buy/sell -> open new position
-            if (not has_position) and normalized_signal in ('buy', 'sell'):
-                liquidation_price = price * (1 - 1/leverage) if leverage > 1 else None
-                position = Position(
-                    symbol=symbol,
-                    quantity=quantity,
-                    entry_price=price,
-                    current_price=price,
-                    liquidation_price=liquidation_price,
-                    leverage=leverage,
-                    profit_target=profit_target,
-                    stop_loss=stop_loss,
-                    confidence=confidence
-                )
-                self.add_position(position)
-                return True
+            if collateral_needed > self.available_cash:
+                print(f"❌ {symbol}: Insufficient cash (need ${collateral_needed:,.2f}, have ${self.available_cash:,.2f})")
+                return False
 
-            # Any other/unrecognized signal -> do nothing
+            # Execute order with signal-based logic
+            has_position = symbol in self.positions and self.positions[symbol].quantity != 0
+            
+            # Create position object
+            liquidation_price = entry_price * (1 - 1/leverage) if leverage > 1 else None
+            position = Position(
+                symbol=symbol,
+                quantity=quantity,
+                entry_price=entry_price,
+                current_price=entry_price,
+                liquidation_price=liquidation_price,
+                leverage=leverage,
+                profit_target=profit_target,
+                stop_loss=stop_loss,
+                confidence=confidence
+            )
+            
+            # Rule: hold -> do nothing (already handled above)
+            
+            # Rule: existing position + close -> close and update totals (already handled above)
+            
+            # Rule: existing position + buy/sell -> handle based on direction
+            if normalized_signal in ('buy', 'sell'):
+                if has_position:
+                    existing_qty = self.positions[symbol].quantity
+                    # Same direction - reject
+                    if existing_qty > 0 and normalized_signal == 'buy':
+                        print(f"⚠️  {symbol}: Order not added - position already exists (Qty: {existing_qty})")
+                        return False
+                    if existing_qty < 0 and normalized_signal == 'sell':
+                        print(f"⚠️  {symbol}: Order not added - position already exists (Qty: {existing_qty})")
+                        return False
+                    # Opposite direction - close and open new
+                    if (existing_qty > 0 and normalized_signal == 'sell') or (existing_qty < 0 and normalized_signal == 'buy'):
+                        self.remove_position(symbol)
+                        self.add_position(position)
+                        print(f"✅ {symbol}: Position reversed - Order added successfully (Qty: {quantity}, Price: ${entry_price:.2f}, Signal: {signal})")
+                        return True
+                
+                # No position - open new
+                if not has_position:
+                    self.add_position(position)
+                    print(f"✅ {symbol}: Order added successfully (Qty: {quantity}, Price: ${entry_price:.2f}, Signal: {signal})")
+                    return True
+            
+            # Invalid signal
+            print(f"❌ {symbol}: Invalid signal: {normalized_signal}")
+            return False
+                
+        except Exception as e:
+            print(f"❌ {symbol}: Error executing decision: {e}")
             return False
     
     def remove_position(self, symbol: str) -> None:
@@ -369,9 +479,9 @@ if __name__ == "__main__":
     # Create portfolio
     portfolio = SimplePortfolio()
     
-    # Add positions using add_order
-    portfolio.add_order("BTC", quantity=0.5, price=45000.0, leverage=10.0)
-    portfolio.add_order("ETH", quantity=-10.0, price=3000.0, leverage=5.0)
+    # Add positions using execute_decision
+    portfolio.execute_decision(symbol="BTC", quantity=0.5, price=45000.0, leverage=10.0, signal="buy")
+    portfolio.execute_decision(symbol="ETH", quantity=-10.0, price=3000.0, leverage=5.0, signal="sell")
     
     # Update current prices
     portfolio.update_all_prices({
