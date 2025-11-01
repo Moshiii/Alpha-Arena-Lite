@@ -159,7 +159,7 @@ def trade_decision_provider(market_data_dict: Dict[str, Dict[str, Any]], portfol
         
         INSTRUCTIONS:
         now pleae generate a trading decision for the symbol {symbol}
-        the quantity should be within 1-3% of the total available cash.
+        the quantity should be within 30% of the total available cash.
         Generate ONLY for symbol {symbol} a single JSON object in the following structure:
         {{
         "trade_signal_args": {{

@@ -32,7 +32,7 @@
     }
   ],
   "timestamp": "2025-01-01T00:00:00.000000",
-  "initial_cash": 1000.0,
-  "available_cash": 1000.0,
-  "total_asset": 1000.0
+  "initial_cash": 10000.0,
+  "available_cash": 10000.0,
+  "total_asset": 10000.0
 }
