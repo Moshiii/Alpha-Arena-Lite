@@ -4,34 +4,34 @@
       "symbol": "BTC",
       "quantity": 0.0,
       "entry_price": 0.0,
-      "current_price": 0.0,
+      "current_price": 110004.5,
       "liquidation_price": null,
       "leverage": 1.0,
       "unrealized_pnl": 0.0,
-      "entry_time": "2025-01-01T00:00:00.000000"
+      "entry_time": "2025-11-01T18:09:48.077696"
     },
     {
       "symbol": "ETH",
       "quantity": 0.0,
       "entry_price": 0.0,
-      "current_price": 0.0,
+      "current_price": 3873.25,
       "liquidation_price": null,
       "leverage": 1.0,
       "unrealized_pnl": 0.0,
-      "entry_time": "2025-01-01T00:00:00.000000"
+      "entry_time": "2025-11-01T18:09:48.077711"
     },
     {
       "symbol": "SOL",
       "quantity": 0.0,
       "entry_price": 0.0,
-      "current_price": 0.0,
+      "current_price": 185.695,
       "liquidation_price": null,
       "leverage": 1.0,
       "unrealized_pnl": 0.0,
-      "entry_time": "2025-01-01T00:00:00.000000"
+      "entry_time": "2025-11-01T18:09:48.077715"
     }
   ],
-  "timestamp": "2025-01-01T00:00:00.000000",
+  "timestamp": "2025-11-01T18:32:19.519549",
   "initial_cash": 1000000.0,
   "available_cash": 1000000.0,
   "total_asset": 1000000.0
