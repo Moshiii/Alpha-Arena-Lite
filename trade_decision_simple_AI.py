@@ -184,11 +184,14 @@ def trade_decision_provider(market_data_dict: Dict[str, Dict[str, Any]], portfol
         from openai import OpenAI
 
         # Initialize client
-        client = OpenAI(api_key=OPENAI_API_KEY)
+        client = OpenAI(
+            api_key=OPENAI_API_KEY,
+            base_url="https//api.deepseek.com/v1"
+        )
 
         # Create a chat completion that returns structured JSON
         response = client.chat.completions.create(
-            model="gpt-4.1-mini",
+            model="deepseek-chat",
             messages=[{"role": "user", "content": MARKET_PROMPT}],
             response_format={"type": "json_object"}  # Ensures valid JSON
         )
