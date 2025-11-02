@@ -122,7 +122,6 @@ while not shutdown:
         if not all_decisions:
             print("\n⏸️  No new trading signals generated.")
         else:
-            print(all_decisions)
             portfolio.decisions_display(all_decisions)
             
             print("\n📝 Executing Orders...")

@@ -41,3 +41,6 @@ python simulation.py
 - 确保已安装所有 `requirements.txt` 中的依赖包
 - 需要有效的 OpenAI API Key 才能使用 AI 交易决策功能
 - 首次运行前建议检查 `portfolio_init.json` 配置是否符合需求
+
+讨论群链接：
+![Alpha Arena Lite](image.png)
