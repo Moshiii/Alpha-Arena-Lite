@@ -10,6 +10,7 @@ import dotenv
 dotenv.load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 def _fmt_number(value: Any, decimals: int = 2) -> str:
     try:
@@ -158,6 +159,7 @@ def trade_decision_provider(market_data_dict: Dict[str, Dict[str, Any]], portfol
         {pf_str}
         
         INSTRUCTIONS:
+        
         now pleae generate a trading decision for the symbol {symbol}
         the quantity should be within 30% of the total available cash.
         Generate ONLY for symbol {symbol} a single JSON object in the following structure:
@@ -185,8 +187,8 @@ def trade_decision_provider(market_data_dict: Dict[str, Dict[str, Any]], portfol
 
         # Initialize client
         client = OpenAI(
-            api_key=OPENAI_API_KEY,
-            base_url="https//api.deepseek.com/v1"
+            api_key=DEEPSEEK_API_KEY,
+            base_url="https://api.deepseek.com"
         )
 
         # Create a chat completion that returns structured JSON

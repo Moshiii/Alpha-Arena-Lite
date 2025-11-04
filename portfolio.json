@@ -2,37 +2,37 @@
   "positions": [
     {
       "symbol": "BTC",
-      "quantity": 0.0079,
-      "entry_price": 110065.0,
-      "current_price": 110167.0,
+      "quantity": 0.027,
+      "entry_price": 110976.0,
+      "current_price": 110894.0,
       "liquidation_price": null,
       "leverage": 1.0,
-      "unrealized_pnl": 0.8058000000000001,
-      "entry_time": "2025-11-01T20:27:39.996142"
-    },
-    {
-      "symbol": "SOL",
-      "quantity": 9.5,
-      "entry_price": 186.32,
-      "current_price": 186.51,
-      "liquidation_price": null,
-      "leverage": 1.0,
-      "unrealized_pnl": 1.8049999999999784,
-      "entry_time": "2025-11-01T20:38:48.066494"
+      "unrealized_pnl": -2.214,
+      "entry_time": "2025-11-02T20:26:25.948778"
     },
     {
       "symbol": "ETH",
-      "quantity": 0.45,
-      "entry_price": 3879.0,
-      "current_price": 3878.3,
+      "quantity": 0.772,
+      "entry_price": 3879.9,
+      "current_price": 3879.3,
       "liquidation_price": null,
       "leverage": 1.0,
-      "unrealized_pnl": -0.3149999999999182,
-      "entry_time": "2025-11-01T20:40:30.464156"
+      "unrealized_pnl": -0.4631999999999298,
+      "entry_time": "2025-11-02T20:26:25.948957"
+    },
+    {
+      "symbol": "SOL",
+      "quantity": 0.0,
+      "entry_price": 0.0,
+      "current_price": 185.89,
+      "liquidation_price": null,
+      "leverage": 1.0,
+      "unrealized_pnl": 0.0,
+      "entry_time": "2025-11-02T20:26:01.684436"
     }
   ],
-  "timestamp": "2025-11-01T20:42:01.456638",
+  "timestamp": "2025-11-02T20:34:40.606942",
   "initial_cash": 10000.0,
-  "available_cash": 5617.886300000003,
-  "total_asset": 10005.285600000003
+  "available_cash": 4008.3652,
+  "total_asset": 9997.3228
 }

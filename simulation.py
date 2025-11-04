@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from hyperliquid_market_data import symbol_data_provider_json
 from simple_portfolio import SimplePortfolio
 from trade_decision_simple_AI import trade_decision_provider
+# from trade_decision_simple import trade_decision_provider
 
 # Configuration constants
 SYMBOLS = ['BTC', 'ETH', 'SOL']
